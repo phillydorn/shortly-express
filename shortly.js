@@ -25,7 +25,15 @@ app.use(express.static(__dirname + '/public'));
 
 app.get('/', 
 function(req, res) {
-  res.render('index');
+  if (util.isLoggedIn()) {
+    res.render('index');    
+  } else {
+    res.redirect('./login');
+  }
+});
+
+app.get('/login', function (req, res) {
+  res.render('login')
 });
 
 app.get('/create', 
@@ -58,7 +66,6 @@ function(req, res) {
           console.log('Error reading URL heading: ', err);
           return res.send(404);
         }
-
         var link = new Link({
           url: uri,
           title: title,
@@ -77,7 +84,24 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.post ('/login', function (req, res) {
+  console.log('post')
+  var uri = req.body.url;
+  var username = req.body.json.username;
+  var password = req.body.json.password;
+  //check if the user exists
+  new User ({username: username}).fetch().then(function(found) {
+    if (found) {
+      console.log('found');
+      res.send(200, found.attributes)
+    } else {
+      res.send(200, "Username does not exist")
+    }
+  })
+  // create a new user
+  new User ({username: req.json.username, password: req.body.password})
 
+});
 
 
 /************************************************************/
