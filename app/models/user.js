@@ -8,20 +8,30 @@ var User = db.Model.extend({
 
   initialize: function(){
     this.on('creating', function(model, attrs, options){
-      bcrypt.genSalt(10, function(err, salt){
-        if (err) {
-          console.log('error 1');
-        }
-        bcrypt.hash(model.get('password'), salt, function(err, hash){
-          if (err) {
-            console.log('error2');
-          }
-          db.knex('users').insert({username: username}, {password: hash});
-        })
-      })
+      var salt = bcrypt.genSaltSync(10);
+      var hash =bcrypt.hashSync(model.get('password'), salt);
+      model.set('password', hash);
+
+      // bcrypt.genSalt(10, function(err, salt){
+      //   if (err) {
+      //     console.log('error 1');
+      //   }
+      //   bcrypt.hash(model.get('password'), salt, function(){},function(err, hash){
+      //     if (err) {
+      //       console.log('error2');
+      //     }
+      //     console.log('hash', hash)
+      //     model.set('password', hash)
+      //     // db.knex('users').where('username', '=', model.get('username')).update({password: hash});
+      //     // db.knex('users').insert({username: model.get('username'), password: hash});
+      //   })
+      // })
+    })
+    this.on('created', function(model, attrs, options) {
+      
     })
   }
-  
+
 });
 
 module.exports = User;
