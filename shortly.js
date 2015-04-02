@@ -22,16 +22,18 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
-app.use(session({secret: 'philcharlie'}))
+app.use(session({
+  secret: 'philcharlie',
+  resave: false,
+  saveUninitialized: true
+}));
 
 var sess;
 
 app.get('/', function(req, res) {
-  if (req.session) {
-    console.log('truthy')
+  if (req.session && req.session.username) {
     res.render('index');    
   } else {
-    console.log('falsy')
     res.redirect('/login');
   }
 });
@@ -41,7 +43,7 @@ app.get('/login', function (req, res) {
 });
 
 app.get('/create', function(req, res) {
-  if (req.session) {
+  if (req.session && req.session.username) {
     res.render('index');    
   } else {
     res.redirect('./login');
@@ -49,7 +51,7 @@ app.get('/create', function(req, res) {
 });
 
 app.get('/links', function(req, res) {
-  if (req.session) {
+  if (req.session && req.session.username) {
     Links.reset().fetch().then(function(links) {
       res.send(200, links.models);
     });
@@ -103,10 +105,10 @@ app.post ('/login', function (req, res) {
       var hash = model.get('password');
       var isValid = util.checkPassword(password, hash); 
       if (isValid) {
-          sess = req.session.regenerate( function(err) {
-            sess.username = req.body.username;
-            res.redirect('/');            
-          });
+         sess = req.session;
+         sess.username = username;
+         res.redirect('/');
+         res.end();
       } else {
         res.redirect('/login');
       }
@@ -117,6 +119,7 @@ app.post ('/login', function (req, res) {
   new User ({username: req.body.username, password: req.body.password})
 
 });
+
 app.post('/signup', function(req, res){
 
   var username = req.body.username;
@@ -124,10 +127,10 @@ app.post('/signup', function(req, res){
   var user = new User({username: username, password: password});
   user.save().then(function(newUser) {
     Users.add(newUser);
-      sess = req.session.regenerate( function(err) {
-      sess.username = req.body.username;
-      res.redirect('/');            
-    });
+     sess = req.session;
+     sess.username = username;
+     res.redirect('/');
+     res.end();
   });
 });
 
@@ -135,7 +138,10 @@ app.post('/signup', function(req, res){
 
 app.get('/logout', function (req, res) {
     req.session.destroy();
+    res.redirect('/login');
+    res.end();
 });
+
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
