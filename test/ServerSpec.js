@@ -59,7 +59,7 @@ describe('', function() {
       });
   });
 
-  xdescribe('Link creation:', function(){
+  describe('Link creation:', function(){
 
     var requestWithSession = request.defaults({jar: true});
 
@@ -216,7 +216,7 @@ describe('', function() {
 
     it('Redirects to login page if a user tries to access the main page and is not signed in', function(done) {
       request('http://127.0.0.1:4568/', function(error, res, body) {
-        console.log (error);
+        console.log('failing test')
         expect(res.req.path).to.equal('/login');
         done();
       });
@@ -238,7 +238,7 @@ describe('', function() {
 
   }); // 'Priviledged Access'
 
-  describe('Account Creation:', function(){
+  xdescribe('Account Creation:', function(){
 
     it('Signup creates a user record', function(done) {
       var options = {
@@ -286,7 +286,7 @@ describe('', function() {
 
   }); // 'Account Creation'
 
-  describe('Account Login:', function(){
+  xdescribe('Account Login:', function(){
 
     var requestWithSession = request.defaults({jar: true});
 

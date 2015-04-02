@@ -26,12 +26,13 @@ app.use(session({secret: 'philcharlie'}))
 
 var sess;
 
-app.get('/', 
-function(req, res) {
-  if (sess) {
+app.get('/', function(req, res) {
+  if (req.session) {
+    console.log('truthy')
     res.render('index');    
   } else {
-    res.redirect('./login');
+    console.log('falsy')
+    res.redirect('/login');
   }
 });
 
@@ -40,7 +41,7 @@ app.get('/login', function (req, res) {
 });
 
 app.get('/create', function(req, res) {
-  if (sess) {
+  if (req.session) {
     res.render('index');    
   } else {
     res.redirect('./login');
@@ -48,7 +49,7 @@ app.get('/create', function(req, res) {
 });
 
 app.get('/links', function(req, res) {
-  if (sess) {
+  if (req.session) {
     Links.reset().fetch().then(function(links) {
       res.send(200, links.models);
     });
@@ -98,15 +99,19 @@ app.post ('/login', function (req, res) {
   var username = req.body.username;
   var password = req.body.password;
   new User ({username: username}).fetch().then(function(model) {
-    var hash = model.get('password');
-    var isValid = util.checkPassword(password, hash);
-    console.log("isValid: ", isValid); 
-    if (isValid) {
-        sess = req.session;
-        sess.username = req.body.username;
-        res.redirect('/');
+    if (model) {
+      var hash = model.get('password');
+      var isValid = util.checkPassword(password, hash); 
+      if (isValid) {
+          sess = req.session.regenerate( function(err) {
+            sess.username = req.body.username;
+            res.redirect('/');            
+          });
+      } else {
+        res.redirect('/login');
+      }
     } else {
-      res.send(200, "Username does not exist")
+      res.redirect('/login');
     }
   })
   new User ({username: req.body.username, password: req.body.password})
@@ -119,13 +124,18 @@ app.post('/signup', function(req, res){
   var user = new User({username: username, password: password});
   user.save().then(function(newUser) {
     Users.add(newUser);
-    sess = req.session;
-    sess.username = req.body.username;
-    res.redirect('/');
+      sess = req.session.regenerate( function(err) {
+      sess.username = req.body.username;
+      res.redirect('/');            
+    });
   });
-
 });
 
+
+
+app.get('/logout', function (req, res) {
+    req.session.destroy();
+});
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
