@@ -42,6 +42,11 @@ app.get('/login', function (req, res) {
   res.render('login')
 });
 
+app.get('/signup', function (req, res) {
+  res.render('signup');
+});
+
+
 app.get('/create', function(req, res) {
   if (req.session && req.session.username) {
     res.render('index');    
@@ -119,6 +124,7 @@ app.post ('/login', function (req, res) {
   new User ({username: req.body.username, password: req.body.password})
 
 });
+
 
 app.post('/signup', function(req, res){
 
